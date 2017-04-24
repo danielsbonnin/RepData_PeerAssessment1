@@ -22,11 +22,13 @@ library(lattice)
 thedata <- read.csv("activity.csv") %>%
 tbl_df()
 bydate <- group_by(thedata, date)
+png("plot1.png")
 summarize(bydate, sum(steps))$`sum(steps)` %>%
 hist(main="Steps Per Day", xlab="Step Count", ylab="Days")
-
+dev.off()
 ```
 
+![](./plot1.png)
 
 ```{r, echo=TRUE}
 sums <- summarize(bydate, sum(steps))
@@ -50,12 +52,15 @@ Mean | Median
 ivls <- group_by(thedata, interval)
 means <- summarize(ivls, mean(steps, na.rm=TRUE))
 names(means) <- c("interval", "average")
+png("plot2.png")
 plot(means, type="l", main="Mean Step Count by Time Interval")
 maxivl <- means[max(means$average) == means$average,1]
 abline(v=maxivl, col="red", lwd=2)
 axis(1, at=maxivl, labels=maxivl, col="red")
 legend("topright", "Max", lwd = 2, col="red")
+dev.off()
 ```
+![](./plot2.png)
 
 #### Impute missing steps data by using the time interval mean
 
@@ -65,15 +70,20 @@ means <- mutate(means, average = round(average))
 imputed <- thedata
 imputed$steps[is.na(imputed$steps)] <- merge(imputed[is.na(imputed$steps),], means, by="interval")[,"average"]
 bydate <- group_by(imputed, date)
+png("plot3.png")
 summarize(bydate, sum(steps))$`sum(steps)` %>%
 hist(main="Steps Per Day", xlab="Step Count", ylab="Days")
+dev.off()
 sums <- summarize(bydate, sum(steps))
 names(sums) <- c("date", "steps")
 themean <- round(mean(sums$steps, na.rm=TRUE), digits=1)
 themed <- round(median(sums$steps, na.rm=TRUE), digits=1)
 ```
+![](./plot3.png)
+
 
 #### Number of "NA"s replaced: `r I(numnas)`
+
 
 #### Daily Steps averages with "NA"s imputed
 
@@ -92,7 +102,9 @@ byisweekend <- mutate(imputed, dow = weekdays(as.Date(imputed$date))) %>%
   group_by(daytype, interval) %>%
   summarize(sum(steps))
 names(byisweekend) <- c("daytype", "interval", "steps")
+png("plot4.png")
 xyplot(steps~interval | daytype, data=byisweekend, type="l", layout=c(1, 2), main="Weekend/Weekday Steps by Interval")
-
-
+dev.off()
 ```
+
+![](./plot4.png)
